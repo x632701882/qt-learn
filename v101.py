@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 import cv2
 import random
+from scipy import io
 
 from time import time
 from util import load_mot, iou, show_tracking_results
@@ -20,10 +21,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     '''GUI class for algorithms. '''
     # thread for multi object tracking algorithm.
     mot_thread = None
+    # thread for multi camera multi object tracking algorithm.
+    mcmot_thread = None
     #初始化
     def __init__(self):
         super(Ui_MainWindow, self).__init__()#继承自Widgets的构造方法
         self.mot_thread = MOT()
+        self.mcmot_thread = MCMOT()
         self.setupUi(self)
 
     #主窗口的各项配置
@@ -124,21 +128,37 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.actionChoose_txt.setObjectName("actionChoose_txt")
         self.actionChoose_video = QtWidgets.QAction(MainWindow)#选择视频文件的action
         self.actionChoose_video.setObjectName("actionChoose_video")
+        # 选择mcmot detection文件的action
+        self.actionChoose_mcmotmat = QtWidgets.QAction(MainWindow)
+        self.actionChoose_mcmotmat.setObjectName("actionChoose_mcmotmat")
+        # 选择mcmot视频文件的action
+        self.actionChoose_mcmotvideo = QtWidgets.QAction(MainWindow)
+        self.actionChoose_mcmotvideo.setObjectName("actionChoose_mcmotvideo")
         self.actionbegin = QtWidgets.QAction(MainWindow)#运行的action
         self.actionbegin.setObjectName("actionbegin")
 
         self.menu.addAction(self.actionChoose_txt)#加到菜单上面去
         self.menu.addAction(self.actionChoose_video)
+        self.menu.addAction(self.actionChoose_mcmotmat)
+        self.menu.addAction(self.actionChoose_mcmotvideo)
         self.menu.addSeparator()
         self.menu.addAction(self.actionbegin)
         self.menubar.addAction(self.menu.menuAction())
 
         self.actionChoose_txt.triggered.connect(self.Open_File)#选择文本文件的信号槽连接
         self.actionChoose_video.triggered.connect(self.Open_Video)#选择视频文件的信号槽连接
+        # 选择mcmot detection文件信号槽连接
+        self.actionChoose_mcmotmat.triggered.connect(self.Open_MCMOT_File)
+        # 选择mcmot视频文件的信号槽连接
+        self.actionChoose_mcmotvideo.triggered.connect(self.Open_MCMOT_Video)
         # start the multi object tracking thread, run the algorithm.
         self.actionbegin.triggered.connect(self.mot_thread.start)
         # get the current frame and display the image on the gui.
         self.mot_thread.mot_signal.connect(self.update_frame)
+        # start the mcmo tracking thread, run the algorithm.
+        self.actionbegin.triggered.connect(self.mcmot_thread.start)
+        # get the current frame and display the image on the gui.
+        self.mcmot_thread.mcmot_signal.connect(self.update_frame)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -147,12 +167,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "运动轨迹分析"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("MainWindow", "单摄像头头多目标跟踪"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "algorithm 2"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("MainWindow", "单摄像头多目标跟踪"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "多摄像头多目标跟踪"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "algorithm 3"))
         self.menu.setTitle(_translate("MainWindow", "文件"))
         self.actionChoose_txt.setText(_translate("MainWindow", "选择文本"))
         self.actionChoose_video.setText(_translate("MainWindow", "选择视频"))
+        self.actionChoose_mcmotmat.setText(_translate("MainWindow", "选择多摄像头文本"))
+        self.actionChoose_mcmotvideo.setText(_translate("MainWindow", "选择多摄像头视频"))
         self.actionbegin.setText(_translate("MainWindow", "运行"))
 
     #开文本文件槽函数
@@ -170,7 +192,31 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                                                                     "选取视频文件",
                                                                     "C:/",
                                                                     "All Files (*);;Video Files (*.rmvb,*.avi)")
+    #开文本文件槽函数
 
+    def Open_MCMOT_File(self):
+        '''set the mcmot tracking detection directory. '''
+        self.mcmot_thread.mcmot_det_dir1, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                                    "选取文本文件1",
+                                                                                    "C:/",
+                                                                                    "All Files (*);;Mat Files (*.mat)")
+        self.mcmot_thread.mcmot_det_dir2, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                                    "选取文本文件2",
+                                                                                    "C:/",
+                                                                                    "All Files (*);;Mat Files (*.mat)")
+
+    #开视频文件槽函数
+    def Open_MCMOT_Video(self):
+        '''set the mcmot tracking video directory.'''
+        self.mcmot_thread.mcmot_video_dir1, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                                      "选取视频文件1",
+                                                                                      "C:/",
+                                                                                      "All Files (*);;Video Files (*.mp4)")
+        self.mcmot_thread.mcmot_video_dir2, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                                      "选取视频文件2",
+                                                                                      "C:/",
+                                                                                      "All Files (*);;Video Files (*.mp4)")
+    
     def update_frame(self, rgb_frame):
         self.label_image.clear()
         self.label_image.setPixmap(QtGui.QPixmap.fromImage(rgb_frame))
@@ -243,6 +289,60 @@ class MOT(QtCore.QThread):
             rgb_frame = convert_cvimage_to_qimage(labeled_frame)
             self.mot_signal.emit(rgb_frame)
         self.vc.release()
+
+class MCMOT(QtCore.QThread):
+    '''A class for multi object tracking thread. '''
+    # video path and detection text path.
+    mcmot_det_dir1 = None
+    mcmot_video_dir1 = None
+    vc1 = None
+    mcmot_det_dir2 = None
+    mcmot_video_dir2 = None
+    vc2 = None
+
+    mcmot_signal = QtCore.pyqtSignal(QtGui.QImage)
+
+    def __init__(self, parent=None):
+        super(MCMOT, self).__init__(parent)
+
+    def run(self):
+        self.vc1 = cv2.VideoCapture(self.mcmot_video_dir1)
+        self.vc2 = cv2.VideoCapture(self.mcmot_video_dir2)
+
+        # load bounding boxes.
+        dets1 = io.loadmat(self.mcmot_det_dir1)['demoData1']
+        dets2 = io.loadmat(self.mcmot_det_dir2)['demoData2']
+
+        # set the color of the object randomly.
+        color_for_boundingbox = [(13 * i % 255, (255 - 5 * i) % 255, (240 + 10 * i) % 255) for i in range(0, 51)]
+
+        # run algorithm.
+        f_num = 0
+        while(True):
+            retval, current_frame1 = self.vc1.read()
+            if retval is False:
+                break
+            retval, current_frame2 = self.vc2.read()
+            if retval is False:
+                break
+            #labeled_frame = show_tracking_results(current_frame, self.tracks_active)
+            f_num = f_num + 1
+            f_num1 = f_num + 76723 + 5542
+            dets1_f = dets1[dets1[:, 2] == f_num1, :]
+            for det in dets1_f:
+                cv2.rectangle(
+                    current_frame1, (det[3], det[4]), (det[3] + det[5], det[4] + det[6]), color_for_boundingbox[det[1]*5], 2)
+            rgb_frame1 = convert_cvimage_to_qimage(current_frame1)
+            self.mcmot_signal.emit(rgb_frame1)
+            f_num2 = f_num + 76723 + 3606
+            dets2_f = dets2[dets2[:, 2] == f_num2, :]
+            for det in dets2_f:
+                cv2.rectangle(
+                    current_frame2, (det[3], det[4]), (det[3] + det[5], det[4] + det[6]), color_for_boundingbox[det[1] * 5], 2)
+            rgb_frame2 = convert_cvimage_to_qimage(current_frame2)
+            self.mcmot_signal.emit(rgb_frame2)
+        self.vc1.release()
+        self.vc2.release()
 
 def convert_cvimage_to_qimage(cvimage):
     '''Change the image format from mat to QImage.
