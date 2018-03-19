@@ -25,20 +25,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     mot_thread = None
     mcmot_thread = None
 
+
     # 初始化
     def __init__(self):
         super(Ui_MainWindow, self).__init__()  # 继承自Widgets的构造方法
         self.mot_thread = MOT()
         self.mcmot_thread = MCMOT()
-        loadUi('v104.ui',self,'resource.qrc')
-        #self.setFixedSize(self.sizeHint())
-        image = QtGui.QImage()
-        image.load('./res/icon.png')
 
-        self.label_image_1.setImage(image)
+        loadUi('v104.ui',self)
 
-        #icon = QtGui.QIcon()
-       #icon.addPixmap(QtGui.QPixmap("./res/icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        #切换页面的信号槽连接
+        self.tabWidget.currentChanged.connect(self.rerender)
         # 这个是主窗口的图标
         self.setWindowIcon(QtGui.QIcon("./res/main.ico"))
 
@@ -105,11 +102,48 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def update_mcmot_frame2(self, rgb_frame):
         self.label_2_2.clear()
         self.label_2_2.setPixmap(QtGui.QPixmap.fromImage(rgb_frame))
+
+    def rerender(self):
+        image = QtGui.QImage(self.label_image_1.width(),self.label_image_1.height(),QtGui.QImage.Format_RGB30)
+
+
+
+
+
+        self.label_image_1.setImage(image)
+        self.label_image_2.setImage(image)
+        self.label_image_3.setImage(image)
+
+
+
+        return
     def show_about(self):
-        reply = QMessageBox.information(self,
-                                        "关于",
-                                        "上海交通大学模式识别与智能系统研究组",
-                                        QMessageBox.Ok )
+        QMessageBox.about(self, "关于", "<html><head/><body><p align=\"center\">"
+                                      "< img src=\"./res/icon.png\"/></p ><p align=\"center\"><span style=\" font-size:10pt;\">"
+                                      "上海交通大学模式识别与人工智能研究组</span></p ><p align=\"center\"><span style=\" font-size:10pt;\">"
+                                      "2018.3.15</span></p ></body></html>")
+
+
+
+'''class Render(QtCore.QThread):
+    mutex = QtCore.QMutex
+    render_signal = QtCore.pyqtSignal(QtGui.QImage)
+    background = QtGui.QImage()
+    def __init__(self):
+        super(Render, self).__init__()
+
+    def run(self):
+        QtCore.QtDebugMsg("running")
+        self.background.load("./res/icon.png")
+
+        self.mutex.lock()
+
+        self.render_siganl.emit(self.background)
+        self.mutex.unlock()'''
+
+
+
+
 
         
 class MOT(QtCore.QThread):

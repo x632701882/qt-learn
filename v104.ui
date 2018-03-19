@@ -78,7 +78,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>图片演示</string>
+           <string>视频演示</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
@@ -137,37 +137,6 @@
                 </property>
                 <property name="text">
                  <string>停止</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="Choose_txt">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>文本</string>
-                </property>
-                <property name="autoDefault">
-                 <bool>false</bool>
-                </property>
-                <property name="flat">
-                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -309,56 +278,6 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="choose_mat1">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>文本1</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="choose_mat2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>文本2</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QPushButton" name="choose_video2">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -457,61 +376,13 @@
    </hints>
   </connection>
   <connection>
-   <sender>Choose_txt</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>Open_file_txt()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>444</x>
-     <y>655</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>507</x>
-     <y>31</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>choose_mat1</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>Open_file_mat1()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>703</x>
-     <y>655</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>694</x>
-     <y>693</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>choose_mat2</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>Open_file_mat2()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>349</x>
-     <y>655</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>217</x>
-     <y>694</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>choose_video1</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>Open_file_video1()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>585</x>
+     <x>739</x>
      <y>655</y>
     </hint>
     <hint type="destinationlabel">
@@ -527,7 +398,7 @@
    <slot>Open_file_video2()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>467</x>
+     <x>622</x>
      <y>655</y>
     </hint>
     <hint type="destinationlabel">
